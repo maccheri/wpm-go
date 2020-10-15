@@ -13,3 +13,12 @@ export const Container = styled.main`
 export const Title = styled.h1`
   font-size: 2.5rem;
 `;
+
+export const Button = styled.button`
+  font-size: 2.5rem;
+`;
+
+export const TextBox = styled.input`
+  width: 100px;
+  height: 50px;
+`;
