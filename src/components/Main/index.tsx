@@ -1,4 +1,10 @@
-import React, { useMemo, useEffect, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 
 import * as S from "./styles";
 
@@ -11,6 +17,8 @@ const Main = ({ title = "WPM GOOOOO" }) => {
   const [playing, setPlaying] = useState(false);
   const [words, setWords] = useState<string[]>([]);
   const [typed, setTyped] = useState<string[]>([]);
+  console.log("Main -> typed", typed);
+  const ref = useRef(null);
 
   useEffect(() => {
     if (playing) {
@@ -41,21 +49,43 @@ const Main = ({ title = "WPM GOOOOO" }) => {
 
   const checkWord = useCallback(() => {
     console.log("checkWord -> words[currentIndex]", words[currentIndex]);
-    return words[currentIndex].toLowerCase().startsWith(currentWord);
+
+    return words[currentIndex]
+      .toLowerCase()
+      .startsWith(currentWord.toLowerCase());
 
     // return words.some((word) => word.startsWith(currentWord));
   }, [currentWord, currentIndex, words]);
 
-  const checkSpace = (e) => {
-    if (e.key === " ") {
-      setCurrentIndex((index) => index + 1);
-    }
-  };
+  const checkSpace = useCallback(
+    (e) => {
+      if (e.key === "Backspace" && !currentWord && currentIndex >= 1) {
+        ref.current.value = typed[currentIndex - 1];
+        setCurrentWord(typed[currentIndex - 1]);
+        setCurrentIndex((index) => index - 1);
+      }
 
-  const onUserType = (e) => {
-    setCurrentWord(e.target.value);
-    console.log(checkWord());
-  };
+      if (e.key === " ") {
+        checkWord();
+
+        setTyped((state) => {
+          return [...state, currentWord];
+        });
+
+        setCurrentIndex((index) => index + 1);
+        setCurrentWord("");
+
+        ref.current.value = "";
+      }
+    },
+    [currentWord]
+  );
+
+  const onUserType = useCallback((e) => {
+    if (e.key !== " ") {
+      setCurrentWord(e.target.value);
+    }
+  }, []);
 
   return (
     <S.Container>
@@ -63,13 +93,19 @@ const Main = ({ title = "WPM GOOOOO" }) => {
 
       <S.TextBox
         type="text"
+        ref={ref}
         onFocus={() => setPlaying(true)}
         onChange={(e) => onUserType(e)}
-        onKeyPress={(e) => checkSpace(e)}
+        onKeyDown={(e) => checkSpace(e)}
       />
 
-      {words.map((word) => (
-        <p key={word}>{word}</p>
+      {words.map((word, index) => (
+        <p key={word}>
+          {word} -{" "}
+          {typed[index] && typed[index].includes(word.toLowerCase())
+            ? "certo"
+            : "errado"}
+        </p>
       ))}
     </S.Container>
   );
