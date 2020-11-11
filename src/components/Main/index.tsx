@@ -9,21 +9,25 @@ import React, {
 import * as S from "./styles";
 
 const unshuffledWords = ["Arrow", "Tomato", "Star", "Wheel"];
+const INITIAL_COUNT_VALUE = 10;
 
 const Main = ({ title = "WPM GOOOOO" }) => {
   const [currentWord, setCurrentWord] = useState<string>("");
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [count, setCount] = useState(60);
+  const [count, setCount] = useState(INITIAL_COUNT_VALUE);
   const [playing, setPlaying] = useState(false);
   const [words, setWords] = useState<string[]>([]);
   const [typed, setTyped] = useState<string[]>([]);
-  console.log("Main -> typed", typed);
+  const [wpm, setWpm] = useState(0);
+
   const ref = useRef(null);
 
   useEffect(() => {
     if (playing) {
       const countdown = setInterval(() => {
-        setCount((count) => (count > 0 ? count - 1 : 60));
+        setCount((count) =>
+          count > 0 && !isFinished ? count - 1 : INITIAL_COUNT_VALUE
+        );
       }, 1000);
 
       return () => {
@@ -47,9 +51,12 @@ const Main = ({ title = "WPM GOOOOO" }) => {
     }
   }, []);
 
-  const checkWord = useCallback(() => {
-    console.log("checkWord -> words[currentIndex]", words[currentIndex]);
+  const isFinished = useMemo(
+    () => typed.length === words.length || count === 0,
+    [typed, words, count]
+  );
 
+  const checkWord = useCallback(() => {
     return words[currentIndex]
       .toLowerCase()
       .startsWith(currentWord.toLowerCase());
@@ -63,9 +70,17 @@ const Main = ({ title = "WPM GOOOOO" }) => {
         ref.current.value = typed[currentIndex - 1];
         setCurrentWord(typed[currentIndex - 1]);
         setCurrentIndex((index) => index - 1);
+
+        setTyped((state) => {
+          const lastRemoved = state.slice(0, state.length - 1);
+          return lastRemoved;
+        });
+
+        e.preventDefault();
       }
 
-      if (e.key === " ") {
+      if (e.key === " " && !isFinished) {
+        e.preventDefault();
         checkWord();
 
         setTyped((state) => {
@@ -87,11 +102,23 @@ const Main = ({ title = "WPM GOOOOO" }) => {
     }
   }, []);
 
+  const resetGame = useCallback(() => {
+    setTyped([]);
+    setPlaying(false);
+    setCount(INITIAL_COUNT_VALUE);
+  }, []);
+
+  const calcWPM = useCallback(
+    () => typed.length / (INITIAL_COUNT_VALUE - count),
+    [typed, count]
+  );
+
   return (
     <S.Container>
       <S.Title>CONTAGEM REGRESSIVA: {count}</S.Title>
 
       <S.TextBox
+        disabled={isFinished}
         type="text"
         ref={ref}
         onFocus={() => setPlaying(true)}
@@ -107,6 +134,13 @@ const Main = ({ title = "WPM GOOOOO" }) => {
             : "errado"}
         </p>
       ))}
+
+      {isFinished && (
+        <>
+          <h1 className="finished">Terminou: {calcWPM()} WPM</h1>{" "}
+          <button onClick={resetGame}>RESET</button>
+        </>
+      )}
     </S.Container>
   );
 };
