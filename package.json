@@ -55,16 +55,5 @@
     "stylelint-config-idiomatic-order": "^8.1.0",
     "stylelint-prettier": "^1.1.2",
     "typescript": "^3.9.7"
-  },
-  "lint-staged": {
-    "src/**/*": [
-      "yarn lint --fix",
-      "yarn test --findRelatedTests --bail"
-    ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   }
 }
