@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 
 export const Container = styled.main`
   width: 100%;
@@ -25,4 +25,22 @@ export const Button = styled.button`
 export const TextBox = styled.input`
   width: 100px;
   height: 50px;
+`;
+
+const wordModifiers = {
+  neutral: () => css`
+    color: black;
+  `,
+  right: () => css`
+    color: green;
+  `,
+  wrong: () => css`
+    color: red;
+  `,
+};
+
+export const Word = styled.span<{ $correct: "neutral" | "right" | "wrong" }>`
+  ${({ $correct }) => css`
+    ${!!$correct && wordModifiers[$correct]()}
+  `}
 `;

@@ -8,6 +8,15 @@ import React, {
 
 import * as S from "./styles";
 
+//TODO:
+/**
+ * [] - Errado e certo, utilizar css
+ * [] - a frase numa linha só
+ * [] - Deixar o projeto bonito
+ * [] - lista de palavras editavel
+ * [] - criar os presets de desenvolvimento e o que mais a gente quiser
+ */
+
 const unshuffledWords = ["Arrow", "Tomato", "Star", "Wheel"];
 const INITIAL_COUNT_VALUE = 10;
 
@@ -19,15 +28,15 @@ const Main = ({ title = "WPM GOOOOO" }) => {
   const [words, setWords] = useState<string[]>([]);
   const [typed, setTyped] = useState<string[]>([]);
   const [wpm, setWpm] = useState(0);
-
   const ref = useRef(null);
 
   useEffect(() => {
     if (playing) {
       const countdown = setInterval(() => {
-        setCount((count) =>
-          count > 0 && !isFinished ? count - 1 : INITIAL_COUNT_VALUE
-        );
+        setCount((count) => {
+          if (!count) clearInterval(countdown);
+          return count > 0 && !isFinished ? count - 1 : INITIAL_COUNT_VALUE;
+        });
       }, 1000);
 
       return () => {
@@ -113,6 +122,17 @@ const Main = ({ title = "WPM GOOOOO" }) => {
     [typed, count]
   );
 
+  const correctWord = useCallback(
+    (word, index) => {
+      if (!typed[index]) return "neutral";
+
+      if (typed[index].includes(word.toLowerCase())) return "right";
+
+      return "wrong";
+    },
+    [typed]
+  );
+
   return (
     <S.Container>
       <S.Title>CONTAGEM REGRESSIVA: {count}</S.Title>
@@ -126,14 +146,17 @@ const Main = ({ title = "WPM GOOOOO" }) => {
         onKeyDown={(e) => checkSpace(e)}
       />
 
-      {words.map((word, index) => (
-        <p key={word}>
-          {word} -{" "}
-          {typed[index] && typed[index].includes(word.toLowerCase())
-            ? "certo"
-            : "errado"}
-        </p>
-      ))}
+      {words.map((word, index) => {
+        console.log(
+          "🚀 ~ file: index.tsx ~ line 148 ~ {words.map ~ correctWord(word, index)",
+          correctWord(word, index)
+        );
+        return (
+          <S.Word key={word} $correct={correctWord(word, index)}>
+            {word}
+          </S.Word>
+        );
+      })}
 
       {isFinished && (
         <>
